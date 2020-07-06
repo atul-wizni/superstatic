@@ -58,6 +58,38 @@ describe('redirect middleware', function() {
       .end(done);
   });
 
+  it('recognizes glob as synonymous with source', function(done) {
+    var app = connect()
+      .use(setup)
+      .use(redirect({redirects: [{
+        glob: '/source',
+        destination: '/redirect',
+        type: 301
+      }]}));
+
+    request(app)
+      .get('/source')
+      .expect(301)
+      .expect('location', '/redirect')
+      .end(done);
+  });
+
+  it('redirects to a configured regexp path', function(done) {
+    var app = connect()
+      .use(setup)
+      .use(redirect({redirects: [{
+        regex: '/source',
+        destination: '/redirect',
+        type: 301
+      }]}));
+
+    request(app)
+      .get('/source')
+      .expect(301)
+      .expect('location', '/redirect')
+      .end(done);
+  });
+
   it('redirects to a configured path with a custom status code', function(done) {
     var app = connect()
       .use(setup)
@@ -119,6 +151,22 @@ describe('redirect middleware', function() {
       .get('/old/redirect/path/there')
       .expect(301)
       .expect('location', '/new/redirect/path/there')
+      .end(done);
+  });
+
+  it('uses capturing groups as segments when given a regex', function(done) {
+    var app = connect()
+      .use(setup)
+      .use(redirect({redirects: [{
+        regex: '\/old\/(.+)\/group\/(.+)',
+        destination: '/new/:1/path/:2',
+        type: 301
+      }]}));
+
+    request(app)
+      .get('/old/capture/group/there')
+      .expect(301)
+      .expect('location', '/new/capture/path/there')
       .end(done);
   });
 
